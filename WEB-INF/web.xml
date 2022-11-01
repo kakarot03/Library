@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="io.asgardeo.tomcat.saml.agent.sample"
+         version="2.5"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+
+    <filter>
+        <filter-name>SAML2SSOAgentFilter</filter-name>
+        <filter-class>io.asgardeo.tomcat.saml.agent.SAML2SSOAgentFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>SAML2SSOAgentFilter</filter-name>
+        <url-pattern>/home.jsp</url-pattern>
+		<url-pattern>/error.jsp</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>SAML2SSOAgentFilter</filter-name>
+        <url-pattern>/index.html</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>SAML2SSOAgentFilter</filter-name>
+        <url-pattern>/samlsso</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>SAML2SSOAgentFilter</filter-name>
+        <url-pattern>/logout</url-pattern>
+    </filter-mapping>
+
+    <listener>
+        <listener-class>io.asgardeo.tomcat.saml.agent.SSOAgentContextEventListener</listener-class>
+    </listener>
+    <context-param>
+        <param-name>property-file</param-name>
+        <param-value>Library.properties</param-value>
+    </context-param>
+    <context-param>
+        <param-name>certificate-file</param-name>
+        <param-value>wso2carbon.jks</param-value>
+    </context-param>
+    <context-param>
+        <param-name>post-binding-request-page</param-name>
+        <param-value>post_binding_request.html</param-value>
+    </context-param>
+
+    <security-role>
+		<role-name>superadmin</role-name>
+    </security-role>
+	<security-role>
+		<role-name>admin</role-name>
+	</security-role>
+	<security-role>
+		<role-name>customer</role-name>
+	</security-role>
+
+    <security-constraint>
+		<web-resource-collection>
+			<web-resource-name>SuperAdmin Auth</web-resource-name>
+      			<url-pattern>/webapp/Users/SuperAdmin/SuperAdmin.jsp</url-pattern>
+				<url-pattern>/webapp/BookOperations/*</url-pattern> 
+				<url-pattern>/webapp/OrderOperations/*</url-pattern> 
+				<url-pattern>/webapp/UserOperations/*</url-pattern> 
+    			<url-pattern>/webapp/BookOperations/FilterBooks.jsp</url-pattern> 
+			<http-method>GET</http-method>
+			<http-method>POST</http-method>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>superadmin</role-name>
+		</auth-constraint>
+		<user-data-constraint>
+			<transport-guarantee>NONE</transport-guarantee>
+		</user-data-constraint>
+    </security-constraint>
+
+    <security-constraint>
+		<web-resource-collection>
+			<web-resource-name>Admin auth</web-resource-name>
+      			<url-pattern>/webapp/Users/Admin/Admin.jsp</url-pattern>
+				<url-pattern>/webapp/BookOperations/FilterBooks.jsp</url-pattern>
+      			<http-method>GET</http-method>
+				<http-method>POST</http-method>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>superadmin</role-name>
+			<role-name>admin</role-name>
+		</auth-constraint>
+		<user-data-constraint>
+			<transport-guarantee>NONE</transport-guarantee>
+		</user-data-constraint>
+	</security-constraint>
+
+    <security-constraint>
+		<web-resource-collection>
+			<web-resource-name>Customer auth</web-resource-name>
+			<url-pattern>/webapp/BookOperations/FilterBooks.jsp</url-pattern>
+     		<http-method>GET</http-method>
+			<http-method>POST</http-method>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>customer</role-name>
+		</auth-constraint>
+		<user-data-constraint>
+			<transport-guarantee>NONE</transport-guarantee>
+		</user-data-constraint>
+	</security-constraint>  
+
+	<login-config>
+		<auth-method>FORM</auth-method>
+		<form-login-config>
+			<form-login-page>/webapp/Login.jsp</form-login-page>
+			<form-error-page>/webapp/Login-fail.jsp</form-error-page>
+		</form-login-config>
+	</login-config>
+
+   <resource-ref>
+        <description>MySQL JDBC</description>
+        <res-ref-name>jdbc/mysql</res-ref-name>
+        <res-type>javax.sql.JDBC</res-type>
+    </resource-ref>
+
+
+   <!-- <servlet>
+     <servlet-name>Servlet1</servlet-name>
+     <servlet-class>lib.UserLogin</servlet-class>
+   </servlet>
+
+   <servlet-mapping>
+     <servlet-name>Servlet1</servlet-name>
+     <url-pattern>/userLogin</url-pattern>
+   </servlet-mapping> -->
+</web-app>

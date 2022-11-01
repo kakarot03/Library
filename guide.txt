@@ -1,0 +1,2 @@
+compile jaas - javac -cp C:\apache-tomcat-9.0.67\webapps\Library\WEB-INF\classes;. -d ../../web-inf/classes *.java
+compile lib - javac -d ../../web-inf/classes *.java
