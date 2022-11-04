@@ -5,43 +5,49 @@
          xmlns="http://java.sun.com/xml/ns/javaee"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 
-    <filter>
-        <filter-name>SAML2SSOAgentFilter</filter-name>
-        <filter-class>io.asgardeo.tomcat.saml.agent.SAML2SSOAgentFilter</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>SAML2SSOAgentFilter</filter-name>
-        <url-pattern>/home.jsp</url-pattern>
-		<url-pattern>/error.jsp</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>SAML2SSOAgentFilter</filter-name>
-        <url-pattern>/index.html</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>SAML2SSOAgentFilter</filter-name>
-        <url-pattern>/samlsso</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>SAML2SSOAgentFilter</filter-name>
-        <url-pattern>/logout</url-pattern>
-    </filter-mapping>
+	<servlet>
+        <servlet-name>ApplicationServlet</servlet-name>
+        <servlet-class>no.steras.opensamlSamples.opensaml4WebprofileDemo.app.ApplicationServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>SingleSignOnService</servlet-name>
+        <servlet-class>no.steras.opensamlSamples.opensaml4WebprofileDemo.idp.SingleSignOnServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ConsumerServlet</servlet-name>
+        <servlet-class>no.steras.opensamlSamples.opensaml4WebprofileDemo.sp.ConsumerServlet</servlet-class>
+    </servlet>
+	<servlet>
+        <servlet-name>ArtifactResolutionServlet</servlet-name>
+        <servlet-class>no.steras.opensamlSamples.opensaml4WebprofileDemo.idp.ArtifactResolutionServlet</servlet-class>
+    </servlet>
 
-    <listener>
-        <listener-class>io.asgardeo.tomcat.saml.agent.SSOAgentContextEventListener</listener-class>
-    </listener>
-    <context-param>
-        <param-name>property-file</param-name>
-        <param-value>Library.properties</param-value>
-    </context-param>
-    <context-param>
-        <param-name>certificate-file</param-name>
-        <param-value>wso2carbon.jks</param-value>
-    </context-param>
-    <context-param>
-        <param-name>post-binding-request-page</param-name>
-        <param-value>post_binding_request.html</param-value>
-    </context-param>
+    <servlet-mapping>
+        <servlet-name>ApplicationServlet</servlet-name>
+        <url-pattern>/app/appservlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SingleSignOnService</servlet-name>
+        <url-pattern>/idp/singleSignOnService</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ConsumerServlet</servlet-name>
+        <url-pattern>/sp/consumer</url-pattern>
+    </servlet-mapping>
+	<servlet-mapping>
+        <servlet-name>ArtifactResolutionServlet</servlet-name>
+        <url-pattern>/idp/artifactResolutionService</url-pattern>
+    </servlet-mapping>
+
+	<filter>
+        <filter-name>AccessFilter</filter-name>
+        <filter-class>no.steras.opensamlSamples.opensaml4WebprofileDemo.sp.AccessFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>AccessFilter</filter-name>
+        <url-pattern>/app/*</url-pattern>
+    </filter-mapping>
 
     <security-role>
 		<role-name>superadmin</role-name>
