@@ -1,5 +1,0 @@
-			Book Id         :  1103
-			Name            :  Harry Potter
-			Author          :  Jk Rowling
-			Category        :  Literature
-			Price           :  350.0000

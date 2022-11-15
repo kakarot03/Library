@@ -1,5 +1,0 @@
-			Book Id         :  1102
-			Name            :  Wings Of Fire
-			Author          :  Dr Kalam
-			Category        :  Biographies
-			Price           :  500.0000

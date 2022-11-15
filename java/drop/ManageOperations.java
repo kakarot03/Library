@@ -61,31 +61,6 @@ public class ManageOperations extends HttpServlet {
                     }
                 }
                 break;
-
-            case 2:
-                redirect = "http://localhost:8080/Library/webapp/Users/Customer/DropBox/DeleteFile.jsp";
-                filePath = req.getParameter("path");
-                try {
-                    Main.deleteFile(filePath);
-                    resp.sendRedirect(redirect + success);
-                } catch (Exception e) {
-                    resp.sendRedirect(redirect + "?status=fail&msg=Error deleting the file");
-                }
-                break;
-
-            case 3:
-                redirect = "http://localhost:8080/Library/webapp/Users/Customer/DropBox/DownloadFile.jsp";
-                filePath = req.getParameter("path1");
-                dropBoxPath = req.getParameter("path2");
-                try {
-                    Main.uploadFile(dropBoxPath, filePath);
-                    resp.sendRedirect(redirect + success);
-                } catch (IOException e) {
-                    resp.sendRedirect(redirect + "?status=fail&msg=Local File Path is Invalid");
-                } catch (Exception e) {
-                    resp.sendRedirect(redirect + "?status=fail&msg=Upload Path is Invalid");
-                }
-                break;
         }
     }
 

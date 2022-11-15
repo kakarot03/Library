@@ -1,5 +1,0 @@
-			Book Id         :  1105
-			Name            :  Grip Of The Goblin
-			Author          :  Stan Lee
-			Category        :  Comics
-			Price           :  690.0000
