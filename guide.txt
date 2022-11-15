@@ -1,2 +1,3 @@
 compile jaas - javac -cp C:\apache-tomcat-9.0.67\webapps\Library\WEB-INF\classes;. -d ../../web-inf/classes *.java
 compile lib - javac -d ../../web-inf/classes *.java
+compile openSAML sp - javac -d ../../../web-inf/classes -cp C:\apache-tomcat-9.0.67\webapps\Library\WEB-INF\lib\*;C:\apache-tomcat-9.0.67\webapps\Library\WEB-INF\classes *.java

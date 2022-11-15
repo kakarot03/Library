@@ -1,47 +1,32 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<web-app>
+    <servlet>
+        <servlet-name>ApplicationServlet</servlet-name>
+        <servlet-class>saml.app.ApplicationServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ConsumerServlet</servlet-name>
+        <servlet-class>saml.sp.ConsumerServlet</servlet-class>
+    </servlet>
 
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="io.asgardeo.tomcat.saml.agent.sample"
-         version="2.5"
-         xmlns="http://java.sun.com/xml/ns/javaee"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+    <servlet-mapping>
+        <servlet-name>ApplicationServlet</servlet-name>
+        <url-pattern>/app/appservlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ConsumerServlet</servlet-name>
+        <url-pattern>/sp/consumer</url-pattern>
+    </servlet-mapping>
 
     <filter>
-        <filter-name>SAML2SSOAgentFilter</filter-name>
-        <filter-class>io.asgardeo.tomcat.saml.agent.SAML2SSOAgentFilter</filter-class>
+        <filter-name>AccessFilter</filter-name>
+        <filter-class>saml.sp.AccessFilter</filter-class>
     </filter>
-    <filter-mapping>
-        <filter-name>SAML2SSOAgentFilter</filter-name>
-        <url-pattern>/home.jsp</url-pattern>
-		<url-pattern>/error.jsp</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>SAML2SSOAgentFilter</filter-name>
-        <url-pattern>/index.html</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>SAML2SSOAgentFilter</filter-name>
-        <url-pattern>/samlsso</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>SAML2SSOAgentFilter</filter-name>
-        <url-pattern>/logout</url-pattern>
-    </filter-mapping>
 
-    <listener>
-        <listener-class>io.asgardeo.tomcat.saml.agent.SSOAgentContextEventListener</listener-class>
-    </listener>
-    <context-param>
-        <param-name>property-file</param-name>
-        <param-value>Library.properties</param-value>
-    </context-param>
-    <context-param>
-        <param-name>certificate-file</param-name>
-        <param-value>wso2carbon.jks</param-value>
-    </context-param>
-    <context-param>
-        <param-name>post-binding-request-page</param-name>
-        <param-value>post_binding_request.html</param-value>
-    </context-param>
+    <filter-mapping>
+        <filter-name>AccessFilter</filter-name>
+        <url-pattern>/webapp/Users/Customer/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
 
     <security-role>
 		<role-name>superadmin</role-name>
@@ -60,7 +45,6 @@
 				<url-pattern>/webapp/BookOperations/*</url-pattern> 
 				<url-pattern>/webapp/OrderOperations/*</url-pattern> 
 				<url-pattern>/webapp/UserOperations/*</url-pattern> 
-    			<url-pattern>/webapp/BookOperations/FilterBooks.jsp</url-pattern> 
 			<http-method>GET</http-method>
 			<http-method>POST</http-method>
 		</web-resource-collection>
@@ -89,21 +73,6 @@
 		</user-data-constraint>
 	</security-constraint>
 
-    <security-constraint>
-		<web-resource-collection>
-			<web-resource-name>Customer auth</web-resource-name>
-			<url-pattern>/webapp/BookOperations/FilterBooks.jsp</url-pattern>
-     		<http-method>GET</http-method>
-			<http-method>POST</http-method>
-		</web-resource-collection>
-		<auth-constraint>
-			<role-name>customer</role-name>
-		</auth-constraint>
-		<user-data-constraint>
-			<transport-guarantee>NONE</transport-guarantee>
-		</user-data-constraint>
-	</security-constraint>  
-
 	<login-config>
 		<auth-method>FORM</auth-method>
 		<form-login-config>
@@ -117,15 +86,4 @@
         <res-ref-name>jdbc/mysql</res-ref-name>
         <res-type>javax.sql.JDBC</res-type>
     </resource-ref>
-
-
-   <!-- <servlet>
-     <servlet-name>Servlet1</servlet-name>
-     <servlet-class>lib.UserLogin</servlet-class>
-   </servlet>
-
-   <servlet-mapping>
-     <servlet-name>Servlet1</servlet-name>
-     <url-pattern>/userLogin</url-pattern>
-   </servlet-mapping> -->
 </web-app>

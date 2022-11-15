@@ -9,8 +9,10 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+
+import javax.servlet.http.HttpServletRequest;
+
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
 import java.sql.PreparedStatement;
 
@@ -167,11 +169,25 @@ public class DBOperations {
         File file = new File("C:\\apache-tomcat-9.0.67\\webapps\\Library\\Files\\Books\\" + b.getId() + ".txt");
         if (file.createNewFile()) {
             FileWriter writer = new FileWriter(file);
-            writer.write(String.format("\t\t\t%-15s :  %s\n\t\t\t%-15s :  %s\n\t\t\t%-15s :  %s\n\t\t\t%-15s :  %s\n\t\t\t%-15s :  %.4f", "Book Id", b.getId(), "Name", b.getName(), "Author", b.getAuthor(), "Category", b.getCategory(), "Price", b.getPrice()));
+            writer.write(String.format(
+                    "\t\t\t%-15s :  %s\n\t\t\t%-15s :  %s\n\t\t\t%-15s :  %s\n\t\t\t%-15s :  %s\n\t\t\t%-15s :  %.4f",
+                    "Book Id", b.getId(), "Name", b.getName(), "Author", b.getAuthor(), "Category", b.getCategory(),
+                    "Price", b.getPrice()));
             writer.close();
         }
 
         System.out.println("\nBook exported successfully");
+    }
+
+    static public Book getBook(int id) throws Exception {
+
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT * FROM books WHERE id = " + id);
+        Book b = null;
+        if (rs.next()) {
+            b = new Book(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getFloat(5));
+        }
+        return b;
     }
 
     static public void exportAllBooks() throws Exception {
@@ -200,25 +216,31 @@ public class DBOperations {
         ResultSet rs = stmt.executeQuery("SELECT * FROM users WHERE id = " + id);
         return rs.next();
     }
-	
-	static public boolean findUser(String name) throws Exception {
+
+    static public boolean findUser(String name) throws Exception {
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery("SELECT * FROM users WHERE username = '" + name + "'");
         return rs.next();
     }
-	
-	static public boolean validatePassword(String name, String pass) throws Exception {
-		Statement stmt = conn.createStatement();
+
+    static public int findUserId(String name) throws Exception {
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT id FROM users WHERE username = '" + name + "'");
+        return rs.next() ? rs.getInt(1) : -1;
+    }
+
+    static public boolean validatePassword(String name, String pass) throws Exception {
+        Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery("SELECT * FROM users WHERE username = '" + name + "'");
         return rs.next() ? rs.getString("password").equals(pass) : false;
-	}
+    }
 
     static public int findUserRole(String name) throws Exception {
         Statement stmt = conn.createStatement();
         ResultSet rs;
         try {
-            rs = stmt.executeQuery("SELECT role FROM user_roles WHERE username = '" + name + "'");   
-        } catch(SQLSyntaxErrorException e) {
+            rs = stmt.executeQuery("SELECT role FROM user_roles WHERE username = '" + name + "'");
+        } catch (SQLSyntaxErrorException e) {
             return -1;
         }
         if (!rs.next())
@@ -238,6 +260,21 @@ public class DBOperations {
         preparedStmt.setString(1, name);
         preparedStmt.setString(2, role);
         preparedStmt.execute();
+
+        // Add user to IDP database
+        Connection con = null;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/saml", "sri", "Sri@1104");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        query = "INSERT INTO users (username, password) values (?, ?)";
+        preparedStmt = con.prepareStatement(query);
+        preparedStmt.setString(1, name);
+        preparedStmt.setString(2, pass);
+        preparedStmt.execute();
+        con.close();
     }
 
     static public void deleteUser(int id) throws Exception {
@@ -290,6 +327,13 @@ public class DBOperations {
         return false;
     }
 
+    static public boolean checkCustomerPurchase(int bookId, int customerId) throws Exception {
+        Statement stmt = conn.createStatement();
+        String query = "SELECT * FROM orders WHERE cust_id = " + customerId + " AND book_id = " + bookId;
+        ResultSet rs = stmt.executeQuery(query);
+        return rs.next();
+    }
+
     static public ResultSet allOrders(int id) throws Exception {
         Statement stmt = conn.createStatement();
         String query = "SELECT t1.id, t2.id, t2.username, t1.name, t1.author, t1.category, t1.price, t3.order_date, t3.return_date FROM BOOKS t1 INNER JOIN users t2 INNER JOIN ORDERS t3 ON t3.cust_id = t2.id AND t3.book_id = t1.id";
@@ -299,7 +343,8 @@ public class DBOperations {
     }
 
     static public ResultSet filterDate(String date, int choice) throws Exception {
-        String query = "SELECT t1.id, t2.id, t2.username, t1.name, t1.author, t1.category, t1.price, t3.order_date, t3.return_date FROM BOOKS t1 INNER JOIN users t2 INNER JOIN ORDERS t3 ON t3.cust_id = t2.id AND t3.book_id = t1.id AND DATEDIFF(t3.return_date, '" + date + "')";
+        String query = "SELECT t1.id, t2.id, t2.username, t1.name, t1.author, t1.category, t1.price, t3.order_date, t3.return_date FROM BOOKS t1 INNER JOIN users t2 INNER JOIN ORDERS t3 ON t3.cust_id = t2.id AND t3.book_id = t1.id AND DATEDIFF(t3.return_date, '"
+                + date + "')";
         Statement stmt = conn.createStatement();
         if (choice == 1) {
             query += " <= 0";
@@ -312,9 +357,45 @@ public class DBOperations {
 
     static public ResultSet allUsers() throws Exception {
         Statement stmt = conn.createStatement();
-        String query = "SELECT t1.id, t1.username, t2.role FROM users t1 INNER JOIN user_roles t2 WHERE t1.username = t2.username ORDER BY t1.id;";
+        String query = "SELECT t1.id, t1.username, t2.role FROM users t1 INNER JOIN user_roles t2 WHERE t1.username = t2.username ORDER BY t1.id";
         ResultSet rs = stmt.executeQuery(query);
         return rs;
+    }
+
+    static public String getAccessToken(String username) throws Exception {
+        Statement stmt = conn.createStatement();
+        String query = "SELECT access_token FROM dropbox WHERE username = '" + username + "'";
+        ResultSet rs = stmt.executeQuery(query);
+        return rs.next() ? rs.getString(1) : null;
+    }
+
+    static public void addAccessToken(HttpServletRequest req) throws Exception {
+        String username = (String) req.getSession().getAttribute("user");
+        String accessToken = (String) req.getSession().getAttribute("accessToken");
+        Statement stmt = conn.createStatement();
+        String query = "SELECT * FROM dropbox WHERE username = '" + username + "'";
+        ResultSet rs = stmt.executeQuery(query);
+        if (rs.next()) {
+            query = "UPDATE dropbox SET access_token = " + accessToken + " WHERE username = '" + username + "'";
+            stmt.executeUpdate(query);
+        } else {
+            query = "INSERT INTO dropbox (username, access_token) VALUES (?, ?)";
+            PreparedStatement preparedStmt = conn.prepareStatement(query);
+            preparedStmt.setString(1, username);
+            preparedStmt.setString(2, accessToken);
+            preparedStmt.execute();
+        }
+    }
+
+    static public void removeAccessToken(String username) {
+        String query = "DELETE FROM dropbox WHERE username = ?";
+        try {
+            PreparedStatement preparedStmt = conn.prepareStatement(query);
+            preparedStmt.setString(1, username);
+            preparedStmt.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     static public void terminate() throws Exception {
@@ -328,6 +409,7 @@ public class DBOperations {
         stmt.execute("DROP TABLE IF EXISTS books");
         stmt.execute("DROP TABLE IF EXISTS users");
         stmt.execute("DROP TABLE IF EXISTS user_roles");
+        stmt.execute("DROP TABLE IF EXISTS dropbox");
         System.out.println("DB closed");
         conn.close();
     }
@@ -345,7 +427,7 @@ public class DBOperations {
 
     static public void addUserIfNotExists(String user, String pass) throws Exception {
         pass = pass == null ? "password" : pass;
-        if(getUserId(user) == -1) {
+        if (getUserId(user) == -1) {
             System.out.println("new user");
             addUser(user, pass, "customer");
         }
@@ -354,24 +436,25 @@ public class DBOperations {
     static public boolean validatePassword(String password) throws Exception {
         return password.length() >= 5;
     }
-    
+
     static public int lastUserId() throws Exception {
-    	ResultSet rs = conn.createStatement().executeQuery("SELECT MAX(id) FROM users");
-    	return rs.next() ? rs.getInt(1) : -1;
+        ResultSet rs = conn.createStatement().executeQuery("SELECT MAX(id) FROM users");
+        return rs.next() ? rs.getInt(1) : -1;
     }
-    
+
     static public int getUserId(String name) throws Exception {
         ResultSet rs = conn.createStatement().executeQuery("SELECT id FROM users WHERE username = '" + name + "'");
         return rs.next() ? rs.getInt(1) : -1;
     }
 
     static public int lastBookId() throws Exception {
-    	ResultSet rs = conn.createStatement().executeQuery("SELECT MAX(id) FROM books");
-    	return rs.next() ? rs.getInt(1) : -1;
+        ResultSet rs = conn.createStatement().executeQuery("SELECT MAX(id) FROM books");
+        return rs.next() ? rs.getInt(1) : -1;
     }
 
     static public String titleCase(String name) {
-		if(name == null || name.isEmpty()) return "";
+        if (name == null || name.isEmpty())
+            return "";
         String res = "";
         for (String s : name.split("\\s+")) {
             res += s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase() + " ";

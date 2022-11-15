@@ -1,5 +1,3 @@
-<%@ page import="io.asgardeo.java.saml.sdk.bean.LoggedInSessionBean" %>
-<%@ page import="io.asgardeo.java.saml.sdk.util.SSOAgentConstants" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,17 +7,12 @@
 </head>
 <body style="overflow: hidden;">
 	<%
-	LoggedInSessionBean sessionBean = (LoggedInSessionBean) session.getAttribute(SSOAgentConstants.SESSION_BEAN_NAME);
-	String user = sessionBean != null ? sessionBean.getSAML2SSO().getSubjectId() : "customer";
-	if(request.getRemoteUser() == null && user == null) {
-		response.sendRedirect("http://localhost:8080/Library/webapp/UserPanel.jsp");
-	}
-	
 	response.addHeader("Pragma", "no-cache");
     response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     response.addHeader("Cache-Control", "pre-check=0, post-check=0");
     response.setDateHeader("Expires", 0);
 	String msg = request.getParameter("msg");
+	String user = (String)request.getSession().getAttribute("user");
 	if (msg != null && msg.equals("success")) {
 	%>
 	<div style="margin-left: 7%;">
